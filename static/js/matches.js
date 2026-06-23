@@ -660,6 +660,8 @@ async function loadLiveScores() {
     }
 
     matches.forEach(match => {
+        const rankingOpen = expandedRankings.has(String(match.match_api_id));
+
         div.innerHTML += `
             <div class="match">
 
