@@ -3,9 +3,46 @@ let nicknameSaved = localStorage.getItem("nickname");
 let allMatches = [];
 let currentFilter = "all";
 
-if (userId && nicknameSaved) {
-    document.getElementById("loginStatus").innerText = "Logged in as " + nicknameSaved;
+function updateAuthUI(message) {
+    const authPage = document.getElementById("authPage");
+    const appPage = document.getElementById("appPage");
+    const loggedInName = document.getElementById("loggedInName");
+    const loginStatus = document.getElementById("loginStatus");
+
+    if (userId && nicknameSaved) {
+        if (authPage) authPage.classList.add("hidden");
+        if (appPage) appPage.classList.remove("hidden");
+        if (loggedInName) loggedInName.innerText = "Logged in as " + nicknameSaved;
+        if (loginStatus) loginStatus.innerText = "";
+    } else {
+        if (authPage) authPage.classList.remove("hidden");
+        if (appPage) appPage.classList.add("hidden");
+        if (loginStatus) loginStatus.innerText = message || "";
+    }
 }
+
+function showAuthTab(tabName) {
+    const loginPanel = document.getElementById("loginPanel");
+    const signupPanel = document.getElementById("signupPanel");
+    const loginTab = document.getElementById("loginTab");
+    const signupTab = document.getElementById("signupTab");
+    const loginStatus = document.getElementById("loginStatus");
+
+    if (loginStatus) loginStatus.innerText = "";
+
+    if (tabName === "signup") {
+        loginPanel.classList.add("hidden");
+        signupPanel.classList.remove("hidden");
+        loginTab.classList.remove("active");
+        signupTab.classList.add("active");
+    } else {
+        signupPanel.classList.add("hidden");
+        loginPanel.classList.remove("hidden");
+        signupTab.classList.remove("active");
+        loginTab.classList.add("active");
+    }
+}
+
 
 function formatDate(utcDateText) {
     if (!utcDateText) {
@@ -199,8 +236,8 @@ async function registerUser() {
 
         localStorage.setItem("user_id", data.user_id);
         localStorage.setItem("nickname", data.nickname);
-
-        document.getElementById("loginStatus").innerText = "Registered and logged in as " + data.nickname;
+        nicknameSaved = data.nickname;
+        updateAuthUI("Registered and logged in as " + data.nickname);
 
         loadMatches();
         loadLeaderboard();
@@ -210,11 +247,11 @@ async function registerUser() {
 }
 
 async function login() {
-    const phoneNumber = cleanPhoneNumber(document.getElementById("loginPhoneNumber").value);
+    const identifier = document.getElementById("loginIdentifier").value.trim();
     const pin = document.getElementById("loginPin").value.trim();
 
-    if (phoneNumber === "" || pin === "") {
-        alert("Please enter phone number and PIN.");
+    if (identifier === "" || pin === "") {
+        alert("Please enter phone number / nickname and PIN.");
         return;
     }
 
@@ -224,7 +261,7 @@ async function login() {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            phone_number: phoneNumber,
+            identifier: identifier,
             pin: pin
         })
     });
@@ -236,8 +273,8 @@ async function login() {
 
         localStorage.setItem("user_id", data.user_id);
         localStorage.setItem("nickname", data.nickname);
-
-        document.getElementById("loginStatus").innerText = "Logged in as " + data.nickname;
+        nicknameSaved = data.nickname;
+        updateAuthUI("Logged in as " + data.nickname);
 
         loadMatches();
         loadLeaderboard();
@@ -251,18 +288,30 @@ function logout() {
     localStorage.removeItem("nickname");
 
     userId = null;
+    nicknameSaved = null;
 
-    document.getElementById("loginStatus").innerText = "Logged out.";
-
-    loadMatches();
-    loadLeaderboard();
+    updateAuthUI("Logged out.");
+    showAuthTab("login");
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    loadLiveScores();
-    loadMatches();
-    loadLeaderboard();
+    updateAuthUI();
 
-    setInterval(loadLiveScores, 30000);
-    setInterval(loadMatches, 60000);
+    if (userId && nicknameSaved) {
+        loadLiveScores();
+        loadMatches();
+        loadLeaderboard();
+    }
+
+    setInterval(function () {
+        if (userId && nicknameSaved) {
+            loadLiveScores();
+        }
+    }, 30000);
+
+    setInterval(function () {
+        if (userId && nicknameSaved) {
+            loadMatches();
+        }
+    }, 60000);
 });
