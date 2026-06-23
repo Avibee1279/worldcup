@@ -2,7 +2,7 @@ let groupStandingsData = {};
 let expandedOldMatches = new Set();
 let expandedRankings = new Set();
 let showAllOldMatches = false;
-let pendingPredictionMatchApiId = null;
+let pendingPredictionMatchApiIds = new Set();
 
 
 function ensureFloatingSaveButton() {
@@ -12,8 +12,8 @@ function ensureFloatingSaveButton() {
         floating = document.createElement("button");
         floating.id = "floatingSavePrediction";
         floating.className = "floating-save-btn hidden";
-        floating.innerText = "Save prediction";
-        floating.onclick = savePendingPrediction;
+        floating.innerText = "Save predictions";
+        floating.onclick = savePendingPredictions;
         document.body.appendChild(floating);
     }
 
@@ -21,30 +21,70 @@ function ensureFloatingSaveButton() {
 }
 
 
+function updateFloatingSaveText() {
+    const floating = ensureFloatingSaveButton();
+    const count = pendingPredictionMatchApiIds.size;
+
+    floating.innerText = count > 1
+        ? `Save ${count} predictions`
+        : "Save prediction";
+}
+
+
 function markPendingPrediction(matchApiId) {
-    pendingPredictionMatchApiId = matchApiId;
+    pendingPredictionMatchApiIds.add(Number(matchApiId));
 
     const floating = ensureFloatingSaveButton();
+    updateFloatingSaveText();
     floating.classList.remove("hidden");
 }
 
 
 function hideFloatingSaveButton() {
-    pendingPredictionMatchApiId = null;
+    pendingPredictionMatchApiIds.clear();
 
     const floating = document.getElementById("floatingSavePrediction");
     if (floating) {
         floating.classList.add("hidden");
+        floating.innerText = "Save predictions";
     }
 }
 
 
-function savePendingPrediction() {
-    if (pendingPredictionMatchApiId === null) {
+async function savePendingPredictions() {
+    if (pendingPredictionMatchApiIds.size === 0) {
         return;
     }
 
-    savePrediction(pendingPredictionMatchApiId);
+    const idsToSave = Array.from(pendingPredictionMatchApiIds);
+    const floating = ensureFloatingSaveButton();
+
+    floating.disabled = true;
+    floating.innerText = "Saving...";
+
+    let savedCount = 0;
+
+    for (const matchApiId of idsToSave) {
+        const ok = await savePrediction(matchApiId, false, true);
+        if (ok) {
+            savedCount++;
+            pendingPredictionMatchApiIds.delete(matchApiId);
+        }
+    }
+
+    floating.disabled = false;
+
+    if (pendingPredictionMatchApiIds.size === 0) {
+        hideFloatingSaveButton();
+    } else {
+        updateFloatingSaveText();
+        floating.classList.remove("hidden");
+    }
+
+    alert(`${savedCount} prediction${savedCount === 1 ? "" : "s"} saved.`);
+
+    loadMatches();
+    loadLeaderboard();
 }
 
 
@@ -258,8 +298,6 @@ function closeTeamMiniPopupOnOutsideClick(event) {
 
 
 async function loadMatches() {
-    hideFloatingSaveButton();
-
     let url = "/api/matches";
 
     if (userId) {
@@ -733,43 +771,81 @@ function renderMatches() {
 }
 
 
-async function savePrediction(matchApiId) {
+async function savePrediction(matchApiId, reloadAfterSave = true, silent = false) {
     if (!userId) {
-        alert("Please login first.");
-        return;
+        if (!silent) {
+            alert("Please login first.");
+        }
+        return false;
     }
 
-    const homePred = document.getElementById("home-" + matchApiId).value;
-    const awayPred = document.getElementById("away-" + matchApiId).value;
+    const homeInput = document.getElementById("home-" + matchApiId);
+    const awayInput = document.getElementById("away-" + matchApiId);
+
+    if (!homeInput || !awayInput) {
+        if (!silent) {
+            alert("Prediction inputs not found.");
+        }
+        return false;
+    }
+
+    const homePred = homeInput.value;
+    const awayPred = awayInput.value;
 
     if (homePred === "" || awayPred === "") {
-        alert("Please enter both scores.");
-        return;
+        if (!silent) {
+            alert("Please enter both scores.");
+        }
+        return false;
     }
 
-    const response = await fetch("/api/predict", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            user_id: Number(userId),
-            match_api_id: matchApiId,
-            home_pred: Number(homePred),
-            away_pred: Number(awayPred)
-        })
-    });
+    try {
+        const response = await fetch("/api/predict", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                user_id: Number(userId),
+                match_api_id: matchApiId,
+                home_pred: Number(homePred),
+                away_pred: Number(awayPred)
+            })
+        });
 
-    const data = await response.json();
+        const data = await response.json();
 
-    alert(data.message || data.error);
+        if (!data.message) {
+            if (!silent) {
+                alert(data.error || "Could not save prediction.");
+            }
+            return false;
+        }
 
-    if (data.message) {
-        hideFloatingSaveButton();
+        if (!silent) {
+            alert(data.message);
+        }
+
+        pendingPredictionMatchApiIds.delete(Number(matchApiId));
+
+        if (pendingPredictionMatchApiIds.size === 0) {
+            hideFloatingSaveButton();
+        } else {
+            updateFloatingSaveText();
+        }
+
+        if (reloadAfterSave) {
+            loadMatches();
+            loadLeaderboard();
+        }
+
+        return true;
+    } catch (error) {
+        if (!silent) {
+            alert("Network error while saving prediction.");
+        }
+        return false;
     }
-
-    loadMatches();
-    loadLeaderboard();
 }
 
 
