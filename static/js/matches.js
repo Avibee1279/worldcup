@@ -150,6 +150,113 @@ async function loadGroupStandingsData() {
 }
 
 
+function closeTeamMiniPopup() {
+    const existing = document.getElementById("teamMiniPopup");
+    if (existing) {
+        existing.remove();
+    }
+}
+
+
+function showTeamHistory(teamId, clickedElement) {
+    closeTeamMiniPopup();
+
+    const firstMatch = allMatches.find(match => {
+        return String(match.home_team_id) === String(teamId) ||
+               String(match.away_team_id) === String(teamId);
+    });
+
+    const teamName = firstMatch
+        ? (String(firstMatch.home_team_id) === String(teamId) ? firstMatch.home_team : firstMatch.away_team)
+        : "Team";
+
+    const teamMatches = allMatches
+        .filter(match => {
+            return String(match.home_team_id) === String(teamId) ||
+                   String(match.away_team_id) === String(teamId);
+        })
+        .sort((a, b) => new Date(a.utc_date) - new Date(b.utc_date));
+
+    let html = `
+        <div class="team-mini-popup-title">
+            ${teamName}
+            <button class="team-mini-close" onclick="closeTeamMiniPopup()">×</button>
+        </div>
+    `;
+
+    if (teamMatches.length === 0) {
+        html += `<div class="simple-history-row">No matches found.</div>`;
+    } else {
+        teamMatches.forEach(match => {
+            const hasScore =
+                match.home_score !== null &&
+                match.home_score !== undefined &&
+                match.away_score !== null &&
+                match.away_score !== undefined;
+
+            const lineScore = hasScore
+                ? `${match.home_team} ${match.home_score} - ${match.away_score} ${match.away_team}`
+                : `${match.home_team} vs ${match.away_team}`;
+
+            html += `
+                <div class="simple-history-row">
+                    <div class="simple-history-date">${formatDate(match.utc_date)}</div>
+                    <div class="simple-history-match">${lineScore}</div>
+                </div>
+            `;
+        });
+    }
+
+    const popup = document.createElement("div");
+    popup.id = "teamMiniPopup";
+    popup.className = "team-mini-popup";
+    popup.innerHTML = html;
+    document.body.appendChild(popup);
+
+    const rect = clickedElement.getBoundingClientRect();
+    const popupRect = popup.getBoundingClientRect();
+
+    let left = rect.left + window.scrollX + (rect.width / 2) - (popupRect.width / 2);
+    let top = rect.top + window.scrollY - popupRect.height - 10;
+
+    if (left < 10) {
+        left = 10;
+    }
+
+    if (left + popupRect.width > window.scrollX + window.innerWidth - 10) {
+        left = window.scrollX + window.innerWidth - popupRect.width - 10;
+    }
+
+    if (top < window.scrollY + 10) {
+        top = rect.bottom + window.scrollY + 10;
+    }
+
+    popup.style.left = left + "px";
+    popup.style.top = top + "px";
+
+    setTimeout(() => {
+        document.addEventListener("click", closeTeamMiniPopupOnOutsideClick);
+    }, 0);
+}
+
+
+function closeTeamMiniPopupOnOutsideClick(event) {
+    const popup = document.getElementById("teamMiniPopup");
+
+    if (!popup) {
+        document.removeEventListener("click", closeTeamMiniPopupOnOutsideClick);
+        return;
+    }
+
+    if (popup.contains(event.target) || event.target.closest(".team-clickable")) {
+        return;
+    }
+
+    closeTeamMiniPopup();
+    document.removeEventListener("click", closeTeamMiniPopupOnOutsideClick);
+}
+
+
 async function loadMatches() {
     hideFloatingSaveButton();
 
@@ -417,7 +524,8 @@ function renderFullMatch(match, oldMatch) {
                     <div class="team-block">
                         <div class="team-label">Home</div>
 
-                        <div class="team-row">
+                        <div class="team-row team-clickable"
+                             onclick="showTeamHistory(${match.home_team_id}, this)">
                             ${getCrestHtml(match.home_crest, match.home_team)}
                             <div class="team-name">${match.home_team}</div>
                         </div>
@@ -436,7 +544,8 @@ function renderFullMatch(match, oldMatch) {
                     <div class="team-block away-team">
                         <div class="team-label">Away</div>
 
-                        <div class="team-row">
+                        <div class="team-row team-clickable"
+                             onclick="showTeamHistory(${match.away_team_id}, this)">
                             ${getCrestHtml(match.away_crest, match.away_team)}
                             <div class="team-name">${match.away_team}</div>
                         </div>
@@ -697,7 +806,8 @@ async function loadLiveScores() {
                 <div class="match-main">
                     <div class="team-block">
                         <div class="team-label">Home</div>
-                        <div class="team-row">
+                        <div class="team-row team-clickable"
+                             onclick="showTeamHistory(${match.home_team_id}, this)">
                             ${getCrestHtml(match.home_crest, match.home_team)}
                             <div class="team-name">${match.home_team}</div>
                         </div>
@@ -709,7 +819,8 @@ async function loadLiveScores() {
 
                     <div class="team-block away-team">
                         <div class="team-label">Away</div>
-                        <div class="team-row">
+                        <div class="team-row team-clickable"
+                             onclick="showTeamHistory(${match.away_team_id}, this)">
                             ${getCrestHtml(match.away_crest, match.away_team)}
                             <div class="team-name">${match.away_team}</div>
                         </div>
