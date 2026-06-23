@@ -1,6 +1,4 @@
 import sqlite3
-from urllib.parse import urlparse
-
 from config import DB_NAME, DATABASE_URL
 
 
@@ -17,8 +15,6 @@ class PostgresCursor:
         return self.cursor.rowcount
 
     def execute(self, sql, params=None):
-        # Existing app uses SQLite ? placeholders.
-        # Convert them to psycopg2 %s placeholders for PostgreSQL.
         sql = sql.replace("?", "%s")
         self.cursor.execute(sql, params or ())
         return self
@@ -65,8 +61,8 @@ def column_exists(cur, table_name, column_name):
         row = cur.execute("""
             SELECT column_name
             FROM information_schema.columns
-            WHERE table_name = %s
-              AND column_name = %s
+            WHERE table_name = ?
+              AND column_name = ?
         """, (table_name, column_name)).fetchone()
         return row is not None
 
@@ -236,23 +232,21 @@ def create_tables_if_needed():
     else:
         create_sqlite_tables(cur)
 
-    # Match table upgrades
     add_column_if_missing(cur, "matches", "home_team_id", "INTEGER")
     add_column_if_missing(cur, "matches", "away_team_id", "INTEGER")
     add_column_if_missing(cur, "matches", "home_crest", "TEXT")
     add_column_if_missing(cur, "matches", "away_crest", "TEXT")
 
-    # User table upgrades
     add_column_if_missing(cur, "users", "nickname", "TEXT")
     add_column_if_missing(cur, "users", "phone_number", "TEXT")
     add_column_if_missing(cur, "users", "whatsapp_opt_in", "INTEGER DEFAULT 0")
     add_column_if_missing(cur, "users", "is_admin", "INTEGER DEFAULT 0")
+
     if is_postgres():
         add_column_if_missing(cur, "users", "created_at", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     else:
         add_column_if_missing(cur, "users", "created_at", "TEXT DEFAULT CURRENT_TIMESTAMP")
 
-    # Notification table upgrades
     add_column_if_missing(cur, "notification_logs", "notification_type", "TEXT")
     add_column_if_missing(cur, "notification_logs", "phone_number", "TEXT")
     add_column_if_missing(cur, "notification_logs", "message", "TEXT")
@@ -260,8 +254,6 @@ def create_tables_if_needed():
     add_column_if_missing(cur, "notification_logs", "sent_at", "TEXT")
     add_column_if_missing(cur, "notification_logs", "error_message", "TEXT")
 
-    # Compatibility for old local DBs:
-    # If nickname or phone_number is empty, copy the username.
     cur.execute("""
     UPDATE users
     SET nickname = username

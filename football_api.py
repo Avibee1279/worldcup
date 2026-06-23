@@ -2,7 +2,7 @@ import json
 import requests
 from datetime import datetime, timedelta, timezone
 from config import TOKEN, BASE_URL
-from database import get_db
+from database import get_db, is_postgres
 
 
 def get_headers():

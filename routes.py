@@ -1,6 +1,6 @@
 from flask import render_template, request, jsonify
 
-from database import get_db
+from database import get_db, is_postgres
 from helpers import is_prediction_open, parse_utc_date, result_type
 from football_api import sync_matches_from_api, sync_team_crests_from_api, get_team_squad
 from scoring import recalculate_points
@@ -299,20 +299,40 @@ def register_routes(app):
                 "error": "Prediction locked. Match already started or finished."
             }), 400
 
-        cur.execute("""
-        INSERT OR REPLACE INTO predictions (
-            user_id,
-            match_api_id,
-            home_pred,
-            away_pred
-        )
-        VALUES (?, ?, ?, ?)
-        """, (
-            user_id,
-            match_api_id,
-            home_pred,
-            away_pred
-        ))
+        if is_postgres():
+            cur.execute("""
+            INSERT INTO predictions (
+                user_id,
+                match_api_id,
+                home_pred,
+                away_pred
+            )
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT (user_id, match_api_id)
+            DO UPDATE SET
+                home_pred = EXCLUDED.home_pred,
+                away_pred = EXCLUDED.away_pred
+            """, (
+                user_id,
+                match_api_id,
+                home_pred,
+                away_pred
+            ))
+        else:
+            cur.execute("""
+            INSERT OR REPLACE INTO predictions (
+                user_id,
+                match_api_id,
+                home_pred,
+                away_pred
+            )
+            VALUES (?, ?, ?, ?)
+            """, (
+                user_id,
+                match_api_id,
+                home_pred,
+                away_pred
+            ))
 
         conn.commit()
         conn.close()
