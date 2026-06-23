@@ -1,6 +1,20 @@
 let groupStandingsData = {};
 let expandedOldMatches = new Set();
+let expandedRankings = new Set();
 let showAllOldMatches = false;
+
+
+function toggleMatchRanking(matchApiId) {
+    const key = String(matchApiId);
+
+    if (expandedRankings.has(key)) {
+        expandedRankings.delete(key);
+    } else {
+        expandedRankings.add(key);
+    }
+
+    renderMatches();
+}
 
 
 function getDateKey(utcDateText) {
@@ -190,6 +204,7 @@ function renderCompactOldMatch(match) {
 
 function renderFullMatch(match, oldMatch) {
     const predictionOpen = isPredictionOpen(match);
+    const rankingOpen = expandedRankings.has(String(match.match_api_id));
 
     const hasPrediction =
         match.home_pred !== null &&
@@ -312,9 +327,11 @@ function renderFullMatch(match, oldMatch) {
                 ` : ""}
 
                 <div class="match-top">
-                    <div class="match-competition">
+                    <button class="match-competition league-toggle"
+                            onclick="toggleMatchRanking(${match.match_api_id})">
                         ${formatGroup(match.group_name)} • ${formatStage(match.stage)}
-                    </div>
+                        <span class="league-toggle-icon">${rankingOpen ? "▲" : "▼"}</span>
+                    </button>
 
                     <div class="match-date">
                         ${formatDate(match.utc_date)}
@@ -373,7 +390,7 @@ function renderFullMatch(match, oldMatch) {
                 </div>
             </div>
 
-            <div class="match-ranking-panel">
+            <div class="match-ranking-panel ${rankingOpen ? "" : "hidden"}">
                 ${renderSideRanking(match.group_name)}
             </div>
 
@@ -585,9 +602,11 @@ async function loadLiveScores() {
             <div class="match">
 
                 <div class="match-top">
-                    <div class="match-competition">
+                    <button class="match-competition league-toggle"
+                            onclick="toggleMatchRanking(${match.match_api_id})">
                         ${formatGroup(match.group_name)} • ${formatStage(match.stage)}
-                    </div>
+                        <span class="league-toggle-icon">${rankingOpen ? "▲" : "▼"}</span>
+                    </button>
 
                     <div class="match-date">
                         ${formatDate(match.utc_date)}
