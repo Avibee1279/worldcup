@@ -4,6 +4,7 @@ from database import get_db
 from helpers import is_prediction_open, parse_utc_date, result_type
 from football_api import sync_matches_from_api, sync_team_crests_from_api, get_team_squad
 from scoring import recalculate_points
+from whatsapp_service import prepare_whatsapp_notifications_for_finished_matches, get_prepared_notification_count
 from scheduler_jobs import smart_sync_after_matches, live_sync_if_needed
 from group_standings import calculate_group_standings
 
@@ -451,6 +452,28 @@ def register_routes(app):
     def admin_smart_check():
         smart_sync_after_matches()
         return "Smart check completed. Check the Python console."
+
+
+    @app.route("/admin/prepare-whatsapp")
+    def admin_prepare_whatsapp():
+        try:
+            # Make sure finished-match points are saved before preparing messages.
+            recalculate_points()
+
+            result = prepare_whatsapp_notifications_for_finished_matches()
+
+            return jsonify({
+                "message": "WhatsApp messages prepared. They are not sent yet.",
+                "created": result["created"],
+                "skipped_existing": result["skipped"],
+                "prepared_total": get_prepared_notification_count(),
+                "sample_messages": result["messages"][:5]
+            })
+
+        except Exception as e:
+            return jsonify({
+                "error": str(e)
+            }), 500
 
 
     @app.route("/admin/live-sync")

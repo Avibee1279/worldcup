@@ -78,6 +78,24 @@ def create_tables_if_needed():
     )
     """)
 
+    # WhatsApp preparation log.
+    # This prevents the same result message from being prepared/sent more than once.
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS notification_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        match_api_id INTEGER NOT NULL,
+        notification_type TEXT NOT NULL,
+        phone_number TEXT NOT NULL,
+        message TEXT NOT NULL,
+        status TEXT DEFAULT 'PREPARED',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        sent_at TEXT,
+        error_message TEXT,
+        UNIQUE(user_id, match_api_id, notification_type)
+    )
+    """)
+
     # Match table upgrades
     add_column_if_missing(cur, "matches", "home_team_id", "INTEGER")
     add_column_if_missing(cur, "matches", "away_team_id", "INTEGER")
@@ -89,6 +107,15 @@ def create_tables_if_needed():
     add_column_if_missing(cur, "users", "phone_number", "TEXT")
     add_column_if_missing(cur, "users", "whatsapp_opt_in", "INTEGER DEFAULT 0")
     add_column_if_missing(cur, "users", "created_at", "TEXT DEFAULT CURRENT_TIMESTAMP")
+
+    # Notification table upgrades
+    add_column_if_missing(cur, "notification_logs", "notification_type", "TEXT")
+    add_column_if_missing(cur, "notification_logs", "phone_number", "TEXT")
+    add_column_if_missing(cur, "notification_logs", "message", "TEXT")
+    add_column_if_missing(cur, "notification_logs", "status", "TEXT DEFAULT 'PREPARED'")
+    add_column_if_missing(cur, "notification_logs", "created_at", "TEXT DEFAULT CURRENT_TIMESTAMP")
+    add_column_if_missing(cur, "notification_logs", "sent_at", "TEXT")
+    add_column_if_missing(cur, "notification_logs", "error_message", "TEXT")
 
     # Existing old users:
     # use username as phone number and nickname until updated

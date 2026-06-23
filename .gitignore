@@ -1,0 +1,9 @@
+.env
+worldcup_game.db
+venv/
+__pycache__/
+*.pyc
+*.db
+*.sqlite
+instance/
+.DS_Store
