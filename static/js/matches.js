@@ -495,8 +495,8 @@ function renderFullMatch(match, oldMatch) {
             predictionText = `
                 <div class="prediction-summary desktop-prediction-status">
                     <div class="prediction-chip">Your prediction: ${match.home_pred} - ${match.away_pred}</div>
-                    <div class="prediction-chip">Score: waiting for update</div>
-                    <div class="prediction-chip points-zero">Points: waiting</div>
+                    <div class="prediction-chip">Current score: 0 - 0</div>
+                    <div class="prediction-chip points-zero">Current points: 0</div>
                 </div>
 
                 <div class="prediction-mini-status mobile-prediction-status">
@@ -546,8 +546,8 @@ function renderFullMatch(match, oldMatch) {
             predictionText = `
                 <div class="prediction-summary compact-prediction-summary">
                     <div class="prediction-chip">Your pick: ${match.home_pred} - ${match.away_pred}</div>
-                    <div class="prediction-chip">Current score: ${hasFinalScore ? match.home_score + " - " + match.away_score : "Waiting for update"}</div>
-                    <div class="prediction-chip ${livePointsClass}">Live points: ${hasFinalScore ? livePoints : "Waiting"}</div>
+                    <div class="prediction-chip">Current score: ${hasFinalScore ? match.home_score + " - " + match.away_score : "0 - 0"}</div>
+                    <div class="prediction-chip ${livePointsClass}">Live points: ${livePoints}</div>
                 </div>
             `;
         } else {

@@ -68,15 +68,33 @@ def get_matches_in_live_window():
     return live
 
 
-def live_sync_if_needed(force=False):
+def live_sync_if_needed(force=False, bypass_cooldown=False):
+    """
+    Sync scores during a live window.
+
+    force=False:
+        Only sync if there is a match in the live window.
+
+    force=True:
+        Sync even if the live-window check is wrong or the API status is late.
+        This is used by the normal app refresh during match time.
+
+    bypass_cooldown=True:
+        Admin-only emergency sync. Do not use for normal users.
+    """
     global LAST_LIVE_API_CALL
+
     live_matches = get_matches_in_live_window()
+
     if not live_matches and not force:
         print("No live match window. No API call.")
         return 0
 
     now = datetime.now(timezone.utc)
-    if not force and LAST_LIVE_API_CALL:
+
+    # Protect football-data API limits.
+    # Normal app users must not trigger unlimited API calls.
+    if not bypass_cooldown and LAST_LIVE_API_CALL:
         if (now - LAST_LIVE_API_CALL).total_seconds() < LIVE_API_COOLDOWN_SECONDS:
             print("Live API call skipped. Cooldown active.")
             return 0

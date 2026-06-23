@@ -207,7 +207,7 @@ function getStatusBadge(match) {
     }
 
     if (isWaitingForScoreUpdate(match)) {
-        return `<span class="status-badge status-waiting">WAITING FOR SCORE</span>`;
+        return `<span class="status-badge status-live">LIVE / WAITING SCORE</span>`;
     }
 
     return `<span class="status-badge status-locked">PREDICTION LOCKED</span>`;

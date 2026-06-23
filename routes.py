@@ -59,6 +59,33 @@ def calculate_prediction_points(home_pred, away_pred, home_score, away_score, st
     return 0
 
 
+def kickoff_has_passed(utc_date_text):
+    if not utc_date_text:
+        return False
+
+    start_time = parse_utc_date(utc_date_text)
+    return datetime.now(timezone.utc) >= start_time
+
+
+def get_effective_live_score(row):
+    """
+    If kick-off has passed but the football API has not returned a score yet,
+    the match should display as 0 - 0 instead of Pending.
+    This does not overwrite the database. It is only for display and live points.
+    """
+    home_score = row["home_score"]
+    away_score = row["away_score"]
+
+    if home_score is not None and away_score is not None:
+        return home_score, away_score
+
+    if row["status"] not in ("FINISHED", "POSTPONED", "CANCELLED", "CANCELED"):
+        if kickoff_has_passed(row["utc_date"]):
+            return 0, 0
+
+    return home_score, away_score
+
+
 def register_routes(app):
 
     @app.route("/")
@@ -273,13 +300,17 @@ def register_routes(app):
         for row in rows:
             match = dict(row)
 
+            effective_home_score, effective_away_score = get_effective_live_score(match)
+            match["home_score"] = effective_home_score
+            match["away_score"] = effective_away_score
+
             if user_id and match["home_pred"] is not None and match["away_pred"] is not None:
                 match["points"] = calculate_prediction_points(
                     match["home_pred"],
                     match["away_pred"],
                     match["home_score"],
                     match["away_score"],
-                    match["status"]
+                    "LIVE" if kickoff_has_passed(match["utc_date"]) and match["status"] != "FINISHED" else match["status"]
                 )
 
             matches.append(match)
@@ -385,7 +416,8 @@ def register_routes(app):
                 p.away_pred,
                 m.home_score,
                 m.away_score,
-                m.status
+                m.status,
+                m.utc_date
             FROM predictions p
             JOIN matches m ON p.match_api_id = m.match_api_id
             WHERE p.user_id = ?
@@ -394,12 +426,15 @@ def register_routes(app):
             total_points = 0
 
             for prediction in predictions:
+                effective_home_score, effective_away_score = get_effective_live_score(prediction)
+                effective_status = "LIVE" if kickoff_has_passed(prediction["utc_date"]) and prediction["status"] != "FINISHED" else prediction["status"]
+
                 total_points += calculate_prediction_points(
                     prediction["home_pred"],
                     prediction["away_pred"],
-                    prediction["home_score"],
-                    prediction["away_score"],
-                    prediction["status"]
+                    effective_home_score,
+                    effective_away_score,
+                    effective_status
                 )
 
             leaderboard_rows.append({
@@ -429,7 +464,7 @@ def register_routes(app):
         and respects the cooldown inside live_sync_if_needed().
         """
         try:
-            count = live_sync_if_needed(force=False)
+            count = live_sync_if_needed(force=True, bypass_cooldown=False)
             return jsonify({
                 "message": "Live sync checked",
                 "updated": count
@@ -474,6 +509,9 @@ def register_routes(app):
             row_dict = dict(row)
 
             if row_dict["status"] in ("IN_PLAY", "PAUSED", "LIVE"):
+                effective_home_score, effective_away_score = get_effective_live_score(row_dict)
+                row_dict["home_score"] = effective_home_score
+                row_dict["away_score"] = effective_away_score
                 live_matches.append(row_dict)
                 continue
 
@@ -488,6 +526,9 @@ def register_routes(app):
                 )
 
                 if start_time <= now <= window_end:
+                    effective_home_score, effective_away_score = get_effective_live_score(row_dict)
+                    row_dict["home_score"] = effective_home_score
+                    row_dict["away_score"] = effective_away_score
                     live_matches.append(row_dict)
 
         return jsonify(live_matches)
@@ -563,7 +604,7 @@ def register_routes(app):
     @app.route("/admin/live-sync")
     def admin_live_sync():
         try:
-            count = live_sync_if_needed(force=True)
+            count = live_sync_if_needed(force=True, bypass_cooldown=True)
             return f"Live sync completed. {count} matches updated."
         except Exception as e:
             return f"Live sync failed: {e}", 500
