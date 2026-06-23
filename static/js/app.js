@@ -172,6 +172,23 @@ function isPredictionOpen(match) {
     return new Date() < new Date(match.utc_date);
 }
 
+function isKickoffPassed(match) {
+    if (!match.utc_date) {
+        return false;
+    }
+
+    return new Date() >= new Date(match.utc_date);
+}
+
+
+function isWaitingForScoreUpdate(match) {
+    return !isFinished(match) &&
+           !isLive(match) &&
+           !isPredictionOpen(match) &&
+           isKickoffPassed(match);
+}
+
+
 function getStatusBadge(match) {
     if (match.status === "PAUSED") {
         return `<span class="status-badge status-paused">HALF-TIME</span>`;
@@ -187,6 +204,10 @@ function getStatusBadge(match) {
 
     if (isPredictionOpen(match)) {
         return `<span class="status-badge status-open">PREDICTION OPEN</span>`;
+    }
+
+    if (isWaitingForScoreUpdate(match)) {
+        return `<span class="status-badge status-waiting">WAITING FOR SCORE</span>`;
     }
 
     return `<span class="status-badge status-locked">PREDICTION LOCKED</span>`;

@@ -3067,3 +3067,14 @@ button:hover {
         gap: 8px !important;
     }
 }
+
+
+/* Waiting for API live score update */
+.status-waiting {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+}
+
+.prediction-chip.points-zero {
+    white-space: nowrap;
+}

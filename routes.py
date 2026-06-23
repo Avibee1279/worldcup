@@ -421,6 +421,25 @@ def register_routes(app):
         return jsonify(leaderboard_rows)
 
 
+    @app.route("/api/live-sync")
+    def api_live_sync():
+        """
+        Public safe sync used by the app.
+        It only calls the football API when there is a match in the live window
+        and respects the cooldown inside live_sync_if_needed().
+        """
+        try:
+            count = live_sync_if_needed(force=False)
+            return jsonify({
+                "message": "Live sync checked",
+                "updated": count
+            })
+        except Exception as e:
+            return jsonify({
+                "error": str(e)
+            }), 500
+
+
     @app.route("/api/live-scores")
     def api_live_scores():
         conn = get_db()
@@ -433,6 +452,8 @@ def register_routes(app):
             status,
             stage,
             group_name,
+            home_team_id,
+            away_team_id,
             home_team,
             away_team,
             home_crest,
@@ -440,6 +461,7 @@ def register_routes(app):
             home_score,
             away_score
         FROM matches
+        WHERE status NOT IN ('FINISHED', 'POSTPONED', 'CANCELLED', 'CANCELED')
         ORDER BY utc_date
         """).fetchall()
 
@@ -449,19 +471,24 @@ def register_routes(app):
         live_matches = []
 
         for row in rows:
-            if not row["utc_date"]:
+            row_dict = dict(row)
+
+            if row_dict["status"] in ("IN_PLAY", "PAUSED", "LIVE"):
+                live_matches.append(row_dict)
                 continue
 
-            start_time = parse_utc_date(row["utc_date"])
-            window_start = start_time - timedelta(minutes=15)
+            # If kick-off has passed but the API has not changed status yet,
+            # show it in Live Scores as "waiting for score update".
+            if row_dict.get("utc_date"):
+                start_time = parse_utc_date(row_dict["utc_date"])
+                window_end = start_time + (
+                    timedelta(minutes=150)
+                    if row_dict.get("stage") == "GROUP_STAGE"
+                    else timedelta(minutes=240)
+                )
 
-            if row["stage"] == "GROUP_STAGE":
-                window_end = start_time + timedelta(minutes=150)
-            else:
-                window_end = start_time + timedelta(minutes=240)
-
-            if window_start <= now <= window_end or row["status"] in ("IN_PLAY", "PAUSED", "LIVE"):
-                live_matches.append(dict(row))
+                if start_time <= now <= window_end:
+                    live_matches.append(row_dict)
 
         return jsonify(live_matches)
 

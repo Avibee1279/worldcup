@@ -495,8 +495,8 @@ function renderFullMatch(match, oldMatch) {
             predictionText = `
                 <div class="prediction-summary desktop-prediction-status">
                     <div class="prediction-chip">Your prediction: ${match.home_pred} - ${match.away_pred}</div>
-                    <div class="prediction-chip">Current score: Pending</div>
-                    <div class="prediction-chip points-zero">Current points: Pending</div>
+                    <div class="prediction-chip">Score: waiting for update</div>
+                    <div class="prediction-chip points-zero">Points: waiting</div>
                 </div>
 
                 <div class="prediction-mini-status mobile-prediction-status">
@@ -546,8 +546,8 @@ function renderFullMatch(match, oldMatch) {
             predictionText = `
                 <div class="prediction-summary compact-prediction-summary">
                     <div class="prediction-chip">Your pick: ${match.home_pred} - ${match.away_pred}</div>
-                    <div class="prediction-chip">Current score: ${hasFinalScore ? match.home_score + " - " + match.away_score : "Pending"}</div>
-                    <div class="prediction-chip ${livePointsClass}">Live points: ${hasFinalScore ? livePoints : "Pending"}</div>
+                    <div class="prediction-chip">Current score: ${hasFinalScore ? match.home_score + " - " + match.away_score : "Waiting for update"}</div>
+                    <div class="prediction-chip ${livePointsClass}">Live points: ${hasFinalScore ? livePoints : "Waiting"}</div>
                 </div>
             `;
         } else {
@@ -925,6 +925,8 @@ async function savePrediction(matchApiId, reloadAfterSave = true, silent = false
 
 
 async function loadLiveScores() {
+    await syncLiveScoresFromServer();
+
     const response = await fetch("/api/live-scores");
     const matches = await response.json();
 
