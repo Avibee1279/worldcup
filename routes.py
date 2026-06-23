@@ -7,6 +7,7 @@ from scoring import recalculate_points
 from whatsapp_service import prepare_whatsapp_notifications_for_finished_matches, get_prepared_notification_count
 from scheduler_jobs import smart_sync_after_matches, live_sync_if_needed
 from group_standings import calculate_group_standings
+from config import TOKEN, BASE_URL, ADMIN_KEY
 
 from datetime import datetime, timedelta, timezone
 
@@ -96,6 +97,157 @@ def sync_live_scores_before_read():
         live_sync_if_needed(force=True, bypass_cooldown=False)
     except Exception as e:
         print("Live sync before read failed:", e)
+
+
+
+ALLOWED_ADMIN_TABLES = {
+    "users": "id",
+    "matches": "utc_date",
+    "predictions": "id",
+    "team_squads": "team_id",
+    "notification_logs": "id"
+}
+
+
+def check_admin_key():
+    """
+    Basic protection for admin DB pages.
+    If ADMIN_KEY is set in Render, the URL must include ?key=ADMIN_KEY.
+    If ADMIN_KEY is not set, pages still work for testing.
+    """
+    if not ADMIN_KEY:
+        return True
+
+    return request.args.get("key") == ADMIN_KEY
+
+
+def admin_key_suffix():
+    if ADMIN_KEY:
+        return "?key=" + request.args.get("key", "")
+
+    return ""
+
+
+def row_to_dict(row):
+    if row is None:
+        return {}
+
+    return dict(row)
+
+
+def html_page(title, body):
+    return f"""
+    <!doctype html>
+    <html>
+    <head>
+        <title>{escape(title)}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                background: #0b2252;
+                margin: 0;
+                padding: 20px;
+                color: #0f172a;
+            }}
+            .wrap {{
+                max-width: 1200px;
+                margin: 0 auto;
+                background: #ffffff;
+                border-radius: 18px;
+                padding: 18px;
+                box-shadow: 0 20px 60px rgba(0,0,0,.22);
+            }}
+            h1 {{
+                margin-top: 0;
+            }}
+            a {{
+                color: #2563eb;
+                font-weight: 700;
+                text-decoration: none;
+            }}
+            .top-links {{
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin-bottom: 16px;
+            }}
+            .cards {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+                gap: 12px;
+            }}
+            .card {{
+                border: 1px solid #e5e7eb;
+                border-radius: 14px;
+                padding: 14px;
+                background: #f8fafc;
+            }}
+            .count {{
+                font-size: 28px;
+                font-weight: 900;
+                margin-top: 6px;
+            }}
+            .table-scroll {{
+                overflow-x: auto;
+                border: 1px solid #e5e7eb;
+                border-radius: 14px;
+            }}
+            table {{
+                border-collapse: collapse;
+                min-width: 100%;
+                font-size: 13px;
+            }}
+            th, td {{
+                border-bottom: 1px solid #e5e7eb;
+                padding: 8px 10px;
+                text-align: left;
+                vertical-align: top;
+                max-width: 320px;
+                word-break: break-word;
+            }}
+            th {{
+                background: #eff6ff;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: .04em;
+            }}
+            .muted {{
+                color: #64748b;
+                font-size: 13px;
+            }}
+            .danger {{
+                background: #fee2e2;
+                color: #991b1b;
+                border: 1px solid #fecaca;
+                border-radius: 12px;
+                padding: 12px;
+                margin: 10px 0;
+            }}
+            @media (max-width: 700px) {{
+                body {{
+                    padding: 10px;
+                }}
+                .wrap {{
+                    padding: 14px;
+                    border-radius: 14px;
+                }}
+                table {{
+                    font-size: 12px;
+                }}
+                th, td {{
+                    padding: 7px 8px;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="wrap">
+            {body}
+        </div>
+    </body>
+    </html>
+    """
 
 
 def register_routes(app):
@@ -565,6 +717,140 @@ def register_routes(app):
             return jsonify(squad)
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+
+
+    @app.route("/admin/db")
+    def admin_db_home():
+        if not check_admin_key():
+            return html_page("Admin denied", """
+                <h1>Access denied</h1>
+                <div class="danger">Missing or wrong admin key.</div>
+            """), 403
+
+        conn = get_db()
+        cur = conn.cursor()
+
+        cards = ""
+
+        for table_name in ALLOWED_ADMIN_TABLES:
+            row = cur.execute(f"SELECT COUNT(*) AS total FROM {table_name}").fetchone()
+            total = row["total"] if row else 0
+
+            cards += f"""
+                <div class="card">
+                    <div><a href="/admin/db/{table_name}{admin_key_suffix()}">{table_name}</a></div>
+                    <div class="count">{total}</div>
+                    <div class="muted">rows</div>
+                </div>
+            """
+
+        conn.close()
+
+        body = f"""
+            <div class="top-links">
+                <a href="/">← Back to app</a>
+                <a href="/admin/db{admin_key_suffix()}">Refresh DB page</a>
+            </div>
+
+            <h1>Database Admin</h1>
+            <p class="muted">View table counts and recent records. This page does not edit or delete data.</p>
+
+            <div class="cards">
+                {cards}
+            </div>
+        """
+
+        return html_page("Database Admin", body)
+
+
+    @app.route("/admin/db/<table_name>")
+    def admin_db_table(table_name):
+        if not check_admin_key():
+            return html_page("Admin denied", """
+                <h1>Access denied</h1>
+                <div class="danger">Missing or wrong admin key.</div>
+            """), 403
+
+        if table_name not in ALLOWED_ADMIN_TABLES:
+            return html_page("Table not allowed", f"""
+                <h1>Table not allowed</h1>
+                <div class="danger">Table {escape(table_name)} is not allowed.</div>
+                <p><a href="/admin/db{admin_key_suffix()}">Back to DB admin</a></p>
+            """), 404
+
+        order_col = ALLOWED_ADMIN_TABLES[table_name]
+
+        conn = get_db()
+        cur = conn.cursor()
+
+        count_row = cur.execute(f"SELECT COUNT(*) AS total FROM {table_name}").fetchone()
+        total = count_row["total"] if count_row else 0
+
+        rows = cur.execute(f"""
+        SELECT *
+        FROM {table_name}
+        ORDER BY {order_col} DESC
+        LIMIT 50
+        """).fetchall()
+
+        conn.close()
+
+        dict_rows = [row_to_dict(row) for row in rows]
+
+        if not dict_rows:
+            table_html = "<p>No records found.</p>"
+        else:
+            columns = list(dict_rows[0].keys())
+
+            header_html = "".join(f"<th>{escape(col)}</th>" for col in columns)
+
+            rows_html = ""
+
+            for row in dict_rows:
+                cells = ""
+
+                for col in columns:
+                    value = row.get(col)
+
+                    if value is None:
+                        value = ""
+
+                    value_text = str(value)
+
+                    if len(value_text) > 500:
+                        value_text = value_text[:500] + "..."
+
+                    cells += f"<td>{escape(value_text)}</td>"
+
+                rows_html += f"<tr>{cells}</tr>"
+
+            table_html = f"""
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>{header_html}</tr>
+                        </thead>
+                        <tbody>
+                            {rows_html}
+                        </tbody>
+                    </table>
+                </div>
+            """
+
+        body = f"""
+            <div class="top-links">
+                <a href="/admin/db{admin_key_suffix()}">← Back to DB admin</a>
+                <a href="/admin/db/{table_name}{admin_key_suffix()}">Refresh table</a>
+                <a href="/">Back to app</a>
+            </div>
+
+            <h1>{escape(table_name)}</h1>
+            <p class="muted">Showing latest 50 records. Total rows: <b>{total}</b></p>
+
+            {table_html}
+        """
+
+        return html_page(f"Table {table_name}", body)
 
 
     @app.route("/admin/sync")

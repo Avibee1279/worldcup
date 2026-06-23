@@ -14,3 +14,6 @@ DB_NAME = str(BASE_DIR / "worldcup_game.db")
 # Render Postgres / Neon Postgres both use DATABASE_URL.
 # In Render, paste the Render Postgres INTERNAL DATABASE URL here.
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+
+# Optional: protect admin DB pages with /admin/db?key=your_key
+ADMIN_KEY = os.getenv("ADMIN_KEY", "").strip()

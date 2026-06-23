@@ -3078,3 +3078,26 @@ button:hover {
 .prediction-chip.points-zero {
     white-space: nowrap;
 }
+
+
+/* Admin DB link */
+.admin-db-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #0f172a;
+    color: #ffffff !important;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 900;
+    text-decoration: none;
+    margin-left: 6px;
+}
+
+@media (max-width: 700px) {
+    .admin-db-link {
+        margin-left: 0;
+        margin-top: 8px;
+        width: fit-content;
+    }
+}

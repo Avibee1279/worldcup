@@ -3,7 +3,7 @@
 <head>
     <title>World Cup Prediction Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=always-live-sync-1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=db-admin-1">
 </head>
 <body>
 
@@ -145,6 +145,7 @@
                 <button class="btn-green" onclick="syncScores()">Sync Scores from API</button>
                 <button class="btn-orange" onclick="calculatePoints()">Calculate Points</button>
                 <button class="btn-light" onclick="smartCheck()">Smart Check</button>
+                <a class="admin-db-link" href="/admin/db" target="_blank">Open DB Admin</a>
             </div>
             <p id="adminStatus" class="admin-status"></p>
         </div>
@@ -183,10 +184,10 @@
     </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=always-live-sync-1"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=db-admin-1"></script>
 <script src="{{ url_for('static', filename='js/leaderboard.js') }}?v=mobile-tabs-admin-1"></script>
 <script src="{{ url_for('static', filename='js/squads.js') }}"></script>
-<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-<script src="{{ url_for('static', filename='js/matches.js') }}?v=always-live-sync-1"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}?v=db-admin-1"></script>
+<script src="{{ url_for('static', filename='js/matches.js') }}?v=db-admin-1"></script>
 </body>
 </html>
