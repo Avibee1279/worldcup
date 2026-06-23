@@ -2,6 +2,50 @@ let groupStandingsData = {};
 let expandedOldMatches = new Set();
 let expandedRankings = new Set();
 let showAllOldMatches = false;
+let pendingPredictionMatchApiId = null;
+
+
+function ensureFloatingSaveButton() {
+    let floating = document.getElementById("floatingSavePrediction");
+
+    if (!floating) {
+        floating = document.createElement("button");
+        floating.id = "floatingSavePrediction";
+        floating.className = "floating-save-btn hidden";
+        floating.innerText = "Save prediction";
+        floating.onclick = savePendingPrediction;
+        document.body.appendChild(floating);
+    }
+
+    return floating;
+}
+
+
+function markPendingPrediction(matchApiId) {
+    pendingPredictionMatchApiId = matchApiId;
+
+    const floating = ensureFloatingSaveButton();
+    floating.classList.remove("hidden");
+}
+
+
+function hideFloatingSaveButton() {
+    pendingPredictionMatchApiId = null;
+
+    const floating = document.getElementById("floatingSavePrediction");
+    if (floating) {
+        floating.classList.add("hidden");
+    }
+}
+
+
+function savePendingPrediction() {
+    if (pendingPredictionMatchApiId === null) {
+        return;
+    }
+
+    savePrediction(pendingPredictionMatchApiId);
+}
 
 
 function toggleMatchRanking(matchApiId) {
@@ -107,6 +151,8 @@ async function loadGroupStandingsData() {
 
 
 async function loadMatches() {
+    hideFloatingSaveButton();
+
     let url = "/api/matches";
 
     if (userId) {
@@ -270,6 +316,10 @@ function renderFullMatch(match, oldMatch) {
         }
     }
 
+    if (predictionOpen && !hasPrediction) {
+        predictionText = "";
+    }
+
     let predictionInputs = "";
 
     if (predictionOpen) {
@@ -277,20 +327,28 @@ function renderFullMatch(match, oldMatch) {
         const existingAway = hasPrediction ? match.away_pred : "";
 
         predictionInputs = `
-            <div class="prediction-form prediction-form-mobile-line">
+            <div class="prediction-form prediction-form-mobile-line prediction-score-row">
                 <div class="prediction-field">
-                    <label>${match.home_team}</label>
-                    <input type="number" id="home-${match.match_api_id}" value="${existingHome}" placeholder="0" min="0">
+                    <input type="number"
+                           id="home-${match.match_api_id}"
+                           value="${existingHome}"
+                           placeholder="0"
+                           min="0"
+                           oninput="markPendingPrediction(${match.match_api_id})">
                 </div>
 
                 <div class="prediction-vs">-</div>
 
                 <div class="prediction-field">
-                    <label>${match.away_team}</label>
-                    <input type="number" id="away-${match.match_api_id}" value="${existingAway}" placeholder="0" min="0">
+                    <input type="number"
+                           id="away-${match.match_api_id}"
+                           value="${existingAway}"
+                           placeholder="0"
+                           min="0"
+                           oninput="markPendingPrediction(${match.match_api_id})">
                 </div>
 
-                <button onclick="savePrediction(${match.match_api_id})">
+                <button class="inline-save-btn" onclick="savePrediction(${match.match_api_id})">
                     ${hasPrediction ? "Update" : "Save"}
                 </button>
             </div>
@@ -579,6 +637,10 @@ async function savePrediction(matchApiId) {
     const data = await response.json();
 
     alert(data.message || data.error);
+
+    if (data.message) {
+        hideFloatingSaveButton();
+    }
 
     loadMatches();
     loadLeaderboard();

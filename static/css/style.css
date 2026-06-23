@@ -2355,3 +2355,104 @@ button:hover {
         padding-bottom: 14px !important;
     }
 }
+
+
+/* Mobile minimal prediction area + floating save */
+.floating-save-btn {
+    display: none;
+}
+
+@media (max-width: 700px) {
+    .prediction-area {
+        padding: 10px 14px 14px !important;
+    }
+
+    /* Remove empty/no-prediction message spacing on open matches */
+    .prediction-area .no-prediction-text:empty {
+        display: none !important;
+    }
+
+    .prediction-score-row,
+    .prediction-area .prediction-form.prediction-score-row {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr) !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .prediction-score-row .prediction-field {
+        width: 100% !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .prediction-score-row .prediction-field label {
+        display: none !important;
+    }
+
+    .prediction-score-row .prediction-field input {
+        width: 100% !important;
+        height: 54px !important;
+        padding: 8px !important;
+        font-size: 22px !important;
+        font-weight: 900 !important;
+        text-align: center !important;
+        border-radius: 16px !important;
+    }
+
+    .prediction-score-row .prediction-vs {
+        align-self: center !important;
+        justify-self: center !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 24px !important;
+        font-weight: 900 !important;
+        color: #64748b !important;
+    }
+
+    /* Desktop still has normal inline save; mobile uses floating save */
+    .prediction-score-row .inline-save-btn {
+        display: none !important;
+    }
+
+    .floating-save-btn {
+        display: block;
+        position: fixed;
+        left: 16px;
+        right: 16px;
+        bottom: 18px;
+        z-index: 9999;
+        height: 56px;
+        border-radius: 18px;
+        background: #2563eb;
+        color: white;
+        font-size: 18px;
+        font-weight: 900;
+        box-shadow: 0 18px 45px rgba(37, 99, 235, 0.45);
+    }
+
+    .floating-save-btn.hidden {
+        display: none !important;
+    }
+
+    body {
+        padding-bottom: 74px;
+    }
+}
+
+@media (max-width: 390px) {
+    .prediction-score-row,
+    .prediction-area .prediction-form.prediction-score-row {
+        grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr) !important;
+        gap: 6px !important;
+    }
+
+    .prediction-score-row .prediction-field input {
+        height: 50px !important;
+        font-size: 20px !important;
+    }
+}
