@@ -2812,3 +2812,54 @@ button:hover {
     cursor: wait;
     transform: none;
 }
+
+
+/* Save all changed predictions on both web and mobile */
+.floating-save-btn {
+    display: block !important;
+    position: fixed;
+    z-index: 9999;
+    border: none;
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.floating-save-btn.hidden {
+    display: none !important;
+}
+
+@media (min-width: 701px) {
+    .floating-save-btn {
+        right: 28px;
+        bottom: 28px;
+        width: auto;
+        min-width: 210px;
+        height: 54px;
+        padding: 0 26px;
+        border-radius: 999px;
+        background: #2563eb;
+        color: #ffffff;
+        font-size: 16px;
+        box-shadow: 0 18px 45px rgba(37, 99, 235, 0.35);
+    }
+
+    .floating-save-btn:hover {
+        background: #1d4ed8;
+        transform: translateY(-1px);
+    }
+}
+
+@media (max-width: 700px) {
+    .floating-save-btn {
+        left: 16px;
+        right: 16px;
+        bottom: 18px;
+        width: auto;
+        height: 56px;
+        border-radius: 18px;
+        background: #2563eb;
+        color: #ffffff;
+        font-size: 18px;
+        box-shadow: 0 18px 45px rgba(37, 99, 235, 0.45);
+    }
+}
