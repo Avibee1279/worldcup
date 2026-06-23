@@ -268,3 +268,23 @@ def create_tables_if_needed():
 
     conn.commit()
     conn.close()
+
+
+
+def get_match_count():
+    """
+    Used by app.py on startup.
+    Returns how many matches are already in the database.
+    If 0, the app will run the first football-data sync.
+    """
+    conn = get_db()
+    cur = conn.cursor()
+
+    row = cur.execute("SELECT COUNT(*) AS total FROM matches").fetchone()
+
+    conn.close()
+
+    if row is None:
+        return 0
+
+    return row["total"]

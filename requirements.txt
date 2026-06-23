@@ -4,3 +4,4 @@ python-dotenv
 APScheduler
 waitress
 gunicorn
+psycopg2-binary
