@@ -1,4 +1,5 @@
 from flask import render_template, request, jsonify
+from markupsafe import escape
 
 from database import get_db, is_postgres
 from helpers import is_prediction_open, parse_utc_date, result_type
