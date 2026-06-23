@@ -88,17 +88,29 @@ def register_routes(app):
         conn = get_db()
         cur = conn.cursor()
 
-        existing_user = cur.execute("""
+        existing_phone = cur.execute("""
         SELECT *
         FROM users
         WHERE phone_number = ?
            OR username = ?
         """, (phone_number, phone_number)).fetchone()
 
-        if existing_user is not None:
+        if existing_phone is not None:
             conn.close()
             return jsonify({
                 "error": "This phone number is already registered. Please login instead."
+            }), 400
+
+        existing_nickname = cur.execute("""
+        SELECT *
+        FROM users
+        WHERE LOWER(COALESCE(nickname, '')) = LOWER(?)
+        """, (nickname,)).fetchone()
+
+        if existing_nickname is not None:
+            conn.close()
+            return jsonify({
+                "error": "This nickname is already used. Please choose another nickname."
             }), 400
 
         cur.execute("""
@@ -133,12 +145,14 @@ def register_routes(app):
     def login():
         data = request.json
 
-        phone_number = clean_phone_number(data.get("phone_number"))
+        login_name = data.get("identifier") or data.get("phone_number") or data.get("username") or ""
+        login_name = str(login_name).strip()
+        login_phone = clean_phone_number(login_name)
         pin = data.get("pin", "").strip()
 
-        if not phone_number or not pin:
+        if not login_name or not pin:
             return jsonify({
-                "error": "Phone number and PIN are required"
+                "error": "Phone number / nickname and PIN are required"
             }), 400
 
         conn = get_db()
@@ -149,12 +163,13 @@ def register_routes(app):
         FROM users
         WHERE phone_number = ?
            OR username = ?
-        """, (phone_number, phone_number)).fetchone()
+           OR LOWER(COALESCE(nickname, '')) = LOWER(?)
+        """, (login_phone, login_phone, login_name)).fetchone()
 
         if user is None:
             conn.close()
             return jsonify({
-                "error": "Phone number not found. Please sign up first."
+                "error": "Account not found. Please sign up first."
             }), 404
 
         if user["pin"] != pin:
@@ -467,7 +482,7 @@ def register_routes(app):
                 "created": result["created"],
                 "skipped_existing": result["skipped"],
                 "prepared_total": get_prepared_notification_count(),
-                "sample_messages": result["messages"][:5]
+                "sample_messages": result.get("sample_messages", [])[:5]
             })
 
         except Exception as e:

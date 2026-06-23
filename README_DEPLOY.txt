@@ -38,3 +38,11 @@ FOOTBALL_DATA_TOKEN = your football-data token
 Open your site, create/login a user, then test saving a prediction.
 
 Admin routes still need protection before sharing widely.
+
+
+LATEST UPDATE:
+- Login screen now appears before Create account.
+- Users can login with phone number OR nickname.
+- After login, the login/signup forms vanish and a current-player card is shown.
+- Render start command should be: gunicorn -w 1 app:app
+- Render environment variable required: FOOTBALL_DATA_TOKEN
