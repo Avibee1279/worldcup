@@ -266,7 +266,18 @@ function renderFullMatch(match, oldMatch) {
 
     let predictionText = "";
 
-    if (isFinished(match)) {
+    if (predictionOpen) {
+        if (hasPrediction) {
+            predictionText = `
+                <div class="prediction-mini-status">
+                    <span class="mini-status-good">Prediction saved</span>
+                    <span class="mini-status-muted">Waiting for kickoff</span>
+                </div>
+            `;
+        } else {
+            predictionText = "";
+        }
+    } else if (isFinished(match)) {
         if (hasPrediction) {
             const points = match.points ?? 0;
 
@@ -279,9 +290,9 @@ function renderFullMatch(match, oldMatch) {
             }
 
             predictionText = `
-                <div class="prediction-summary">
-                    <div class="prediction-chip">Your prediction: ${match.home_pred} - ${match.away_pred}</div>
-                    <div class="prediction-chip">Final result: ${hasFinalScore ? match.home_score + " - " + match.away_score : "Pending"}</div>
+                <div class="prediction-summary compact-prediction-summary">
+                    <div class="prediction-chip">Your pick: ${match.home_pred} - ${match.away_pred}</div>
+                    <div class="prediction-chip">Final score: ${hasFinalScore ? match.home_score + " - " + match.away_score : "Pending"}</div>
                     <div class="prediction-chip ${pointsClass}">Points earned: ${hasFinalScore ? points : "Pending"}</div>
                 </div>
             `;
@@ -303,10 +314,10 @@ function renderFullMatch(match, oldMatch) {
             }
 
             predictionText = `
-                <div class="prediction-summary">
-                    <div class="prediction-chip">Your prediction: ${match.home_pred} - ${match.away_pred}</div>
+                <div class="prediction-summary compact-prediction-summary">
+                    <div class="prediction-chip">Your pick: ${match.home_pred} - ${match.away_pred}</div>
                     <div class="prediction-chip">Current score: ${hasFinalScore ? match.home_score + " - " + match.away_score : "Pending"}</div>
-                    <div class="prediction-chip ${livePointsClass}">Current points: ${hasFinalScore ? livePoints : "Pending"}</div>
+                    <div class="prediction-chip ${livePointsClass}">Live points: ${hasFinalScore ? livePoints : "Pending"}</div>
                 </div>
             `;
         } else {
@@ -314,10 +325,6 @@ function renderFullMatch(match, oldMatch) {
                 <p class="no-prediction-text">No prediction was made for this match.</p>
             `;
         }
-    }
-
-    if (predictionOpen && !hasPrediction) {
-        predictionText = "";
     }
 
     let predictionInputs = "";
