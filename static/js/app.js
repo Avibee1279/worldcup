@@ -286,42 +286,53 @@ async function registerUser() {
     const phoneNumber = cleanPhoneNumber(document.getElementById("signupPhoneNumber").value);
     const pin = document.getElementById("signupPin").value.trim();
     const whatsappOptIn = document.getElementById("whatsappOptIn").checked;
+    const loginStatus = document.getElementById("loginStatus");
 
     if (nickname === "" || phoneNumber === "" || pin === "") {
         alert("Please enter nickname, phone number and PIN.");
         return;
     }
 
-    const response = await fetch("/api/register", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            nickname: nickname,
-            phone_number: phoneNumber,
-            pin: pin,
-            whatsapp_opt_in: whatsappOptIn
-        })
-    });
+    loginStatus.innerText = "Creating account...";
 
-    const data = await response.json();
+    try {
+        const response = await fetch("/api/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                nickname: nickname,
+                phone_number: phoneNumber,
+                pin: pin,
+                whatsapp_opt_in: whatsappOptIn
+            })
+        });
 
-    if (data.user_id) {
+        const data = await response.json();
+
+        if (!response.ok || !data.user_id) {
+            loginStatus.innerText = data.error || "Registration failed.";
+            return;
+        }
+
+        // Auto-login immediately after successful registration.
         userId = data.user_id;
+        nicknameSaved = data.nickname;
 
         localStorage.setItem("user_id", data.user_id);
         localStorage.setItem("nickname", data.nickname);
-        nicknameSaved = data.nickname;
+
         clearAuthInputs();
         updateAuthUI("Registered and logged in as " + data.nickname);
+        updateAdminVisibility();
 
-        loadMatches();
-        loadLeaderboard();
-    } else {
-        document.getElementById("loginStatus").innerText = data.error || "Registration failed.";
+        await smartRefreshNow();
+    } catch (error) {
+        loginStatus.innerText = "Registration failed. Please try again.";
     }
 }
+
 
 async function login() {
     const identifier = document.getElementById("loginIdentifier").value.trim();

@@ -113,29 +113,51 @@ def register_routes(app):
                 "error": "This nickname is already used. Please choose another nickname."
             }), 400
 
-        cur.execute("""
-        INSERT INTO users (
-            username,
-            nickname,
-            phone_number,
-            pin,
-            whatsapp_opt_in
-        )
-        VALUES (?, ?, ?, ?, ?)
-        """, (
-            phone_number,
-            nickname,
-            phone_number,
-            pin,
-            whatsapp_opt_in
-        ))
+        if is_postgres():
+            user_row = cur.execute("""
+            INSERT INTO users (
+                username,
+                nickname,
+                phone_number,
+                pin,
+                whatsapp_opt_in
+            )
+            VALUES (?, ?, ?, ?, ?)
+            RETURNING id
+            """, (
+                phone_number,
+                nickname,
+                phone_number,
+                pin,
+                whatsapp_opt_in
+            )).fetchone()
+
+            user_id = user_row["id"]
+        else:
+            cur.execute("""
+            INSERT INTO users (
+                username,
+                nickname,
+                phone_number,
+                pin,
+                whatsapp_opt_in
+            )
+            VALUES (?, ?, ?, ?, ?)
+            """, (
+                phone_number,
+                nickname,
+                phone_number,
+                pin,
+                whatsapp_opt_in
+            ))
+
+            user_id = cur.lastrowid
 
         conn.commit()
-        user_id = cur.lastrowid
         conn.close()
 
         return jsonify({
-            "message": "Registration successful",
+            "message": "Registration successful. You are now logged in.",
             "user_id": user_id,
             "nickname": nickname
         })
