@@ -3,7 +3,7 @@
 <head>
     <title>World Cup Prediction Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=dynamic-refresh-1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=mobile-tabs-admin-1">
 </head>
 <body>
 
@@ -116,23 +116,29 @@
             <div class="stat-card"><div class="stat-title">Live</div><div class="stat-value" id="statLive">0</div></div>
         </div>
 
+        <div class="mobile-app-tabs">
+            <button id="mobileTabMatches" class="mobile-app-tab active" onclick="showMobileSection('matches')">Matches</button>
+            <button id="mobileTabLeaderboard" class="mobile-app-tab" onclick="showMobileSection('leaderboard')">Leaderboard</button>
+            <button id="mobileTabLive" class="mobile-app-tab" onclick="showMobileSection('live')">Live</button>
+        </div>
+
         <div class="grid">
-            <div class="box leaderboard-click-box" onclick="smartRefreshNow()">
+            <div id="leaderboardBox" class="box leaderboard-click-box mobile-section mobile-section-leaderboard" onclick="smartRefreshNow()">
                 <h2>Leaderboard <span class="refresh-hint">tap/click to refresh</span></h2>
                 <button onclick="event.stopPropagation(); smartRefreshNow()">Refresh Leaderboard</button>
                 <div id="leaderboard"></div>
             </div>
 
-            <div class="box live-panel">
+            <div id="liveBox" class="box live-panel mobile-section mobile-section-live">
                 <h2>🔥 Live Scores</h2>
                 <button class="btn-orange" onclick="loadLiveScores()">Refresh Live Scores</button>
-                <button class="btn-green" onclick="forceLiveSync()">Force Live Sync</button>
+                <button class="btn-green admin-only" onclick="forceLiveSync()">Force Live Sync</button>
                 <p id="liveStatus"></p>
                 <div id="liveScores"></div>
             </div>
         </div>
 
-        <div class="box">
+        <div id="adminBox" class="box admin-only hidden">
             <h2>Admin</h2>
             <button onclick="toggleAdmin()">Show / Hide Admin Tools</button>
             <div id="adminTools" class="hidden" style="margin-top: 12px;">
@@ -143,7 +149,7 @@
             <p id="adminStatus" class="admin-status"></p>
         </div>
 
-        <div class="box">
+        <div id="matchesBox" class="box mobile-section mobile-section-matches active">
             <h2>Matches</h2>
             <div class="filters">
                 <button onclick="setFilter('all')">All</button>
@@ -177,10 +183,10 @@
     </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=dynamic-refresh-1"></script>
-<script src="{{ url_for('static', filename='js/leaderboard.js') }}?v=dynamic-refresh-1"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=mobile-tabs-admin-1"></script>
+<script src="{{ url_for('static', filename='js/leaderboard.js') }}?v=mobile-tabs-admin-1"></script>
 <script src="{{ url_for('static', filename='js/squads.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-<script src="{{ url_for('static', filename='js/matches.js') }}?v=dynamic-refresh-1"></script>
+<script src="{{ url_for('static', filename='js/matches.js') }}?v=mobile-tabs-admin-1"></script>
 </body>
 </html>

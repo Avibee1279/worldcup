@@ -1,3 +1,56 @@
+
+
+function isAdminMode() {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("admin") === "1") {
+        localStorage.setItem("admin_mode", "1");
+        return true;
+    }
+
+    return localStorage.getItem("admin_mode") === "1";
+}
+
+
+function updateAdminVisibility() {
+    const isAdmin = isAdminMode();
+
+    document.querySelectorAll(".admin-only").forEach(el => {
+        if (isAdmin) {
+            el.classList.remove("hidden");
+        } else {
+            el.classList.add("hidden");
+        }
+    });
+}
+
+
+function showMobileSection(sectionName) {
+    document.querySelectorAll(".mobile-section").forEach(el => {
+        el.classList.remove("active");
+    });
+
+    document.querySelectorAll(".mobile-app-tab").forEach(el => {
+        el.classList.remove("active");
+    });
+
+    const section = document.querySelector(".mobile-section-" + sectionName);
+    const tab = document.getElementById(
+        "mobileTab" + sectionName.charAt(0).toUpperCase() + sectionName.slice(1)
+    );
+
+    if (section) section.classList.add("active");
+    if (tab) tab.classList.add("active");
+
+    if (sectionName === "leaderboard") {
+        smartRefreshNow();
+    }
+
+    if (sectionName === "live") {
+        loadLiveScores();
+    }
+}
+
 let userId = localStorage.getItem("user_id");
 let nicknameSaved = localStorage.getItem("nickname");
 let allMatches = [];
@@ -300,6 +353,7 @@ async function login() {
         nicknameSaved = data.nickname;
         clearAuthInputs();
         updateAuthUI("Logged in as " + data.nickname);
+        updateAdminVisibility();
 
         loadMatches();
         loadLeaderboard();
@@ -317,11 +371,14 @@ function logout() {
 
     clearAuthInputs();
     updateAuthUI("Logged out.");
+    updateAdminVisibility();
     showAuthTab("login");
 }
 
 document.addEventListener("DOMContentLoaded", function () {
     updateAuthUI();
+    updateAdminVisibility();
+    showMobileSection("matches");
 
     if (userId && nicknameSaved) {
         smartRefreshNow();
