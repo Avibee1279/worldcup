@@ -269,13 +269,21 @@ function renderFullMatch(match, oldMatch) {
     if (predictionOpen) {
         if (hasPrediction) {
             predictionText = `
-                <div class="prediction-mini-status">
+                <div class="prediction-summary desktop-prediction-status">
+                    <div class="prediction-chip">Your prediction: ${match.home_pred} - ${match.away_pred}</div>
+                    <div class="prediction-chip">Current score: Pending</div>
+                    <div class="prediction-chip points-zero">Current points: Pending</div>
+                </div>
+
+                <div class="prediction-mini-status mobile-prediction-status">
                     <span class="mini-status-good">Prediction saved</span>
                     <span class="mini-status-muted">Waiting for kickoff</span>
                 </div>
             `;
         } else {
-            predictionText = "";
+            predictionText = `
+                <p class="no-prediction-text desktop-prediction-status">No prediction was made for this match.</p>
+            `;
         }
     } else if (isFinished(match)) {
         if (hasPrediction) {
@@ -336,6 +344,7 @@ function renderFullMatch(match, oldMatch) {
         predictionInputs = `
             <div class="prediction-form prediction-form-mobile-line prediction-score-row">
                 <div class="prediction-field">
+                    <label class="desktop-prediction-label">${match.home_team}</label>
                     <input type="number"
                            id="home-${match.match_api_id}"
                            value="${existingHome}"
@@ -347,6 +356,7 @@ function renderFullMatch(match, oldMatch) {
                 <div class="prediction-vs">-</div>
 
                 <div class="prediction-field">
+                    <label class="desktop-prediction-label">${match.away_team}</label>
                     <input type="number"
                            id="away-${match.match_api_id}"
                            value="${existingAway}"

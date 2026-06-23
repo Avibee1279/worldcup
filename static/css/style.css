@@ -2541,3 +2541,49 @@ button:hover {
         margin: 0 !important;
     }
 }
+
+
+/* Restore desktop prediction details; keep mobile minimal */
+.mobile-prediction-status {
+    display: none;
+}
+
+.desktop-prediction-status {
+    display: flex;
+}
+
+.desktop-prediction-label {
+    display: block;
+}
+
+@media (min-width: 701px) {
+    .prediction-score-row .inline-save-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .prediction-score-row {
+        max-width: 760px;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+}
+
+@media (max-width: 700px) {
+    .desktop-prediction-status {
+        display: none !important;
+    }
+
+    .mobile-prediction-status {
+        display: flex !important;
+    }
+
+    .desktop-prediction-label {
+        display: none !important;
+    }
+
+    .prediction-area {
+        padding-top: 10px !important;
+    }
+}
