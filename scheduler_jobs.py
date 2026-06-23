@@ -10,23 +10,30 @@ LIVE_API_COOLDOWN_SECONDS = 30
 
 def get_due_matches_for_sync():
     conn = get_db()
-    rows = conn.execute("""
+    cur = conn.cursor()
+
+    rows = cur.execute("""
     SELECT match_api_id, utc_date, status, stage, home_team, away_team
     FROM matches
     WHERE status NOT IN ('FINISHED', 'POSTPONED', 'CANCELLED', 'CANCELED')
     ORDER BY utc_date
     """).fetchall()
+
     conn.close()
 
     now = datetime.now(timezone.utc)
     due = []
+
     for row in rows:
         if not row["utc_date"]:
             continue
+
         start = parse_utc_date(row["utc_date"])
         finish = start + (timedelta(minutes=135) if row["stage"] == "GROUP_STAGE" else timedelta(minutes=210))
+
         if now >= finish:
             due.append(row)
+
     return due
 
 
@@ -46,25 +53,32 @@ def smart_sync_after_matches():
 
 def get_matches_in_live_window():
     conn = get_db()
-    rows = conn.execute("""
+    cur = conn.cursor()
+
+    rows = cur.execute("""
     SELECT match_api_id, utc_date, status, stage, group_name, home_team, away_team,
            home_crest, away_crest, home_score, away_score
     FROM matches
     WHERE status NOT IN ('FINISHED', 'POSTPONED', 'CANCELLED', 'CANCELED')
     ORDER BY utc_date
     """).fetchall()
+
     conn.close()
 
     now = datetime.now(timezone.utc)
     live = []
+
     for row in rows:
         if not row["utc_date"]:
             continue
+
         start = parse_utc_date(row["utc_date"])
         window_start = start - timedelta(minutes=15)
         window_end = start + (timedelta(minutes=150) if row["stage"] == "GROUP_STAGE" else timedelta(minutes=240))
-        if window_start <= now <= window_end:
+
+        if window_start <= now <= window_end or row["status"] in ("IN_PLAY", "PAUSED", "LIVE"):
             live.append(row)
+
     return live
 
 
