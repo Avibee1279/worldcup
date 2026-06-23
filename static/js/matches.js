@@ -426,9 +426,7 @@ function renderFullMatch(match, oldMatch) {
                 </div>
             `;
         } else {
-            predictionText = `
-                <p class="no-prediction-text desktop-prediction-status">No prediction was made for this match.</p>
-            `;
+            predictionText = "";
         }
     } else if (isFinished(match)) {
         if (hasPrediction) {
@@ -489,7 +487,6 @@ function renderFullMatch(match, oldMatch) {
         predictionInputs = `
             <div class="prediction-form prediction-form-mobile-line prediction-score-row">
                 <div class="prediction-field">
-                    <label class="desktop-prediction-label">${match.home_team}</label>
                     <input type="number"
                            id="home-${match.match_api_id}"
                            value="${existingHome}"
@@ -501,7 +498,6 @@ function renderFullMatch(match, oldMatch) {
                 <div class="prediction-vs">-</div>
 
                 <div class="prediction-field">
-                    <label class="desktop-prediction-label">${match.away_team}</label>
                     <input type="number"
                            id="away-${match.match_api_id}"
                            value="${existingAway}"
