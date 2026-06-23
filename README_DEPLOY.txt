@@ -46,3 +46,5 @@ LATEST UPDATE:
 - After login, the login/signup forms vanish and a current-player card is shown.
 - Render start command should be: gunicorn -w 1 app:app
 - Render environment variable required: FOOTBALL_DATA_TOKEN
+
+UPDATE: Login/signup is now a separate entry screen. Main app appears only after login.
