@@ -277,7 +277,7 @@ function renderFullMatch(match, oldMatch) {
         const existingAway = hasPrediction ? match.away_pred : "";
 
         predictionInputs = `
-            <div class="prediction-form">
+            <div class="prediction-form prediction-form-mobile-line">
                 <div class="prediction-field">
                     <label>${match.home_team}</label>
                     <input type="number" id="home-${match.match_api_id}" value="${existingHome}" placeholder="0" min="0">

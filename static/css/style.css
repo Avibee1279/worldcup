@@ -2172,3 +2172,186 @@ button:hover {
         padding: 6px 7px !important;
     }
 }
+
+
+/* Mobile: prediction input stays on one line */
+@media (max-width: 700px) {
+    .prediction-area {
+        padding: 12px 14px !important;
+    }
+
+    .prediction-summary,
+    .no-prediction-text {
+        margin: 0 0 12px !important;
+        padding: 12px !important;
+        font-size: 15px !important;
+        line-height: 1.25 !important;
+        border-radius: 16px !important;
+    }
+
+    .prediction-form {
+        display: grid !important;
+        grid-template-columns: 1fr 28px 1fr !important;
+        gap: 8px !important;
+        align-items: end !important;
+        width: 100% !important;
+    }
+
+    .prediction-field {
+        min-width: 0 !important;
+    }
+
+    .prediction-field label {
+        display: block !important;
+        font-size: 11px !important;
+        line-height: 1.1 !important;
+        margin: 0 0 6px !important;
+        letter-spacing: .08em !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .prediction-field input {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 52px !important;
+        padding: 8px !important;
+        font-size: 22px !important;
+        font-weight: 900 !important;
+        text-align: center !important;
+        border-radius: 14px !important;
+    }
+
+    .prediction-vs {
+        align-self: center !important;
+        justify-self: center !important;
+        font-size: 22px !important;
+        font-weight: 900 !important;
+        padding-bottom: 12px !important;
+    }
+
+    .prediction-form button {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+        height: 54px !important;
+        margin-top: 4px !important;
+        font-size: 18px !important;
+        border-radius: 15px !important;
+    }
+}
+
+@media (max-width: 390px) {
+    .prediction-form {
+        grid-template-columns: 1fr 22px 1fr !important;
+        gap: 6px !important;
+    }
+
+    .prediction-field input {
+        height: 48px !important;
+        font-size: 20px !important;
+    }
+
+    .prediction-vs {
+        font-size: 20px !important;
+    }
+}
+
+
+/* FORCE mobile prediction fields on one row */
+@media (max-width: 700px) {
+    .prediction-area {
+        padding: 12px 14px !important;
+    }
+
+    .prediction-form-mobile-line,
+    .prediction-area .prediction-form.prediction-form-mobile-line {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr) !important;
+        grid-template-areas:
+            "home dash away"
+            "save save save" !important;
+        column-gap: 8px !important;
+        row-gap: 10px !important;
+        align-items: end !important;
+        width: 100% !important;
+    }
+
+    .prediction-form-mobile-line .prediction-field:nth-of-type(1) {
+        grid-area: home !important;
+    }
+
+    .prediction-form-mobile-line .prediction-vs {
+        grid-area: dash !important;
+        align-self: end !important;
+        justify-self: center !important;
+        padding: 0 0 15px 0 !important;
+        margin: 0 !important;
+        font-size: 22px !important;
+        font-weight: 900 !important;
+    }
+
+    .prediction-form-mobile-line .prediction-field:nth-of-type(2) {
+        grid-area: away !important;
+    }
+
+    .prediction-form-mobile-line button {
+        grid-area: save !important;
+        width: 100% !important;
+        height: 54px !important;
+        margin: 0 !important;
+        font-size: 18px !important;
+        border-radius: 15px !important;
+    }
+
+    .prediction-form-mobile-line .prediction-field {
+        min-width: 0 !important;
+        width: 100% !important;
+        display: block !important;
+    }
+
+    .prediction-form-mobile-line .prediction-field label {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 0 6px 0 !important;
+        padding: 0 !important;
+        font-size: 11px !important;
+        line-height: 1.1 !important;
+        letter-spacing: .08em !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .prediction-form-mobile-line .prediction-field input {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        height: 52px !important;
+        padding: 8px !important;
+        font-size: 22px !important;
+        font-weight: 900 !important;
+        text-align: center !important;
+        border-radius: 14px !important;
+    }
+}
+
+@media (max-width: 390px) {
+    .prediction-form-mobile-line,
+    .prediction-area .prediction-form.prediction-form-mobile-line {
+        grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr) !important;
+        column-gap: 6px !important;
+    }
+
+    .prediction-form-mobile-line .prediction-field input {
+        height: 48px !important;
+        font-size: 20px !important;
+    }
+
+    .prediction-form-mobile-line .prediction-vs {
+        font-size: 20px !important;
+        padding-bottom: 14px !important;
+    }
+}
