@@ -754,7 +754,7 @@ def register_routes(app):
             </div>
 
             <h1>Database Admin</h1>
-            <p class="muted">View table counts and recent records. This page does not edit or delete data.</p>
+            <p class="muted">View table counts and recent records. This page does not edit or delete data. Tables show up to 200 rows.</p>
 
             <div class="cards">
                 {cards}
@@ -791,7 +791,7 @@ def register_routes(app):
         SELECT *
         FROM {table_name}
         ORDER BY {order_col} DESC
-        LIMIT 50
+        LIMIT 200
         """).fetchall()
 
         conn.close()
@@ -846,7 +846,7 @@ def register_routes(app):
             </div>
 
             <h1>{escape(table_name)}</h1>
-            <p class="muted">Showing latest 50 records. Total rows: <b>{total}</b></p>
+            <p class="muted">Showing latest 200 records. Total rows: <b>{total}</b></p>
 
             {table_html}
         """
