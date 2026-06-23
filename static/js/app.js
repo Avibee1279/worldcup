@@ -21,6 +21,29 @@ function updateAuthUI(message) {
     }
 }
 
+
+function clearAuthInputs() {
+    const fieldsToClear = [
+        "loginIdentifier",
+        "loginPin",
+        "signupNickname",
+        "signupPhoneNumber",
+        "signupPin"
+    ];
+
+    fieldsToClear.forEach(function (fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.value = "";
+        }
+    });
+
+    const whatsappOptIn = document.getElementById("whatsappOptIn");
+    if (whatsappOptIn) {
+        whatsappOptIn.checked = false;
+    }
+}
+
 function showAuthTab(tabName) {
     const loginPanel = document.getElementById("loginPanel");
     const signupPanel = document.getElementById("signupPanel");
@@ -237,6 +260,7 @@ async function registerUser() {
         localStorage.setItem("user_id", data.user_id);
         localStorage.setItem("nickname", data.nickname);
         nicknameSaved = data.nickname;
+        clearAuthInputs();
         updateAuthUI("Registered and logged in as " + data.nickname);
 
         loadMatches();
@@ -274,6 +298,7 @@ async function login() {
         localStorage.setItem("user_id", data.user_id);
         localStorage.setItem("nickname", data.nickname);
         nicknameSaved = data.nickname;
+        clearAuthInputs();
         updateAuthUI("Logged in as " + data.nickname);
 
         loadMatches();
@@ -290,6 +315,7 @@ function logout() {
     userId = null;
     nicknameSaved = null;
 
+    clearAuthInputs();
     updateAuthUI("Logged out.");
     showAuthTab("login");
 }
