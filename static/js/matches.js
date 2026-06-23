@@ -3,6 +3,85 @@ let expandedOldMatches = new Set();
 let expandedRankings = new Set();
 let showAllOldMatches = false;
 let pendingPredictionMatchApiIds = new Set();
+let lastScoreSignature = null;
+let smartRefreshRunning = false;
+
+
+function buildScoreSignature(matches) {
+    return matches
+        .map(match => {
+            return [
+                match.match_api_id,
+                match.status,
+                match.home_score ?? "",
+                match.away_score ?? ""
+            ].join(":");
+        })
+        .join("|");
+}
+
+
+async function checkForScoreUpdates() {
+    if (!userId || smartRefreshRunning) {
+        return;
+    }
+
+    smartRefreshRunning = true;
+
+    try {
+        let url = "/api/matches?user_id=" + encodeURIComponent(userId);
+        const response = await fetch(url);
+        const matches = await response.json();
+
+        const newSignature = buildScoreSignature(matches);
+
+        if (lastScoreSignature === null) {
+            lastScoreSignature = newSignature;
+            return;
+        }
+
+        if (newSignature !== lastScoreSignature) {
+            lastScoreSignature = newSignature;
+            allMatches = matches;
+
+            // Re-render matches only when user is not currently editing unsaved predictions.
+            if (pendingPredictionMatchApiIds.size === 0) {
+                renderMatches();
+            }
+
+            loadLeaderboard();
+            loadLiveScores();
+        }
+    } catch (error) {
+        console.log("Score update check failed", error);
+    } finally {
+        smartRefreshRunning = false;
+    }
+}
+
+
+async function smartRefreshNow() {
+    if (!userId || smartRefreshRunning) {
+        return;
+    }
+
+    smartRefreshRunning = true;
+
+    try {
+        await loadMatches();
+        await loadLeaderboard();
+        await loadLiveScores();
+
+        if (Array.isArray(allMatches)) {
+            lastScoreSignature = buildScoreSignature(allMatches);
+        }
+    } catch (error) {
+        console.log("Smart refresh failed", error);
+    } finally {
+        smartRefreshRunning = false;
+    }
+}
+
 
 
 function ensureFloatingSaveButton() {

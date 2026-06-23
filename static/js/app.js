@@ -324,20 +324,28 @@ document.addEventListener("DOMContentLoaded", function () {
     updateAuthUI();
 
     if (userId && nicknameSaved) {
-        loadLiveScores();
-        loadMatches();
-        loadLeaderboard();
+        smartRefreshNow();
     }
 
+    // Check quietly for score/status updates.
+    // When a score changes, matches + leaderboard refresh automatically.
     setInterval(function () {
         if (userId && nicknameSaved) {
-            loadLiveScores();
+            checkForScoreUpdates();
         }
     }, 30000);
 
-    setInterval(function () {
-        if (userId && nicknameSaved) {
-            loadMatches();
+    // User actions such as returning to the tab or clicking the leaderboard area
+    // refresh the latest points immediately.
+    document.addEventListener("visibilitychange", function () {
+        if (!document.hidden && userId && nicknameSaved) {
+            smartRefreshNow();
         }
-    }, 60000);
+    });
+
+    window.addEventListener("focus", function () {
+        if (userId && nicknameSaved) {
+            smartRefreshNow();
+        }
+    });
 });

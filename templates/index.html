@@ -3,7 +3,7 @@
 <head>
     <title>World Cup Prediction Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=web-clean-1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=dynamic-refresh-1">
 </head>
 <body>
 
@@ -117,9 +117,9 @@
         </div>
 
         <div class="grid">
-            <div class="box">
-                <h2>Leaderboard</h2>
-                <button onclick="loadLeaderboard()">Refresh Leaderboard</button>
+            <div class="box leaderboard-click-box" onclick="smartRefreshNow()">
+                <h2>Leaderboard <span class="refresh-hint">tap/click to refresh</span></h2>
+                <button onclick="event.stopPropagation(); smartRefreshNow()">Refresh Leaderboard</button>
                 <div id="leaderboard"></div>
             </div>
 
@@ -177,10 +177,10 @@
     </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/app.js') }}"></script>
-<script src="{{ url_for('static', filename='js/leaderboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=dynamic-refresh-1"></script>
+<script src="{{ url_for('static', filename='js/leaderboard.js') }}?v=dynamic-refresh-1"></script>
 <script src="{{ url_for('static', filename='js/squads.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-<script src="{{ url_for('static', filename='js/matches.js') }}?v=web-clean-1"></script>
+<script src="{{ url_for('static', filename='js/matches.js') }}?v=dynamic-refresh-1"></script>
 </body>
 </html>
