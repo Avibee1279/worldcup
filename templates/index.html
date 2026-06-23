@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>World Cup Prediction Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <h1>🏆 World Cup Prediction Game</h1>
+        <p>Predict scores before kick-off, follow live games, and climb the leaderboard.</p>
+        <div class="rules">
+            <div class="rule-pill">Exact score = 3 points</div>
+            <div class="rule-pill">Correct result = 1 point</div>
+            <div class="rule-pill">Prediction locks at kick-off</div>
+            <div class="rule-pill">Phone number stays private</div>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-title">Total Matches</div>
+            <div class="stat-value" id="statTotal">0</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Open Predictions</div>
+            <div class="stat-value" id="statUpcoming">0</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Finished</div>
+            <div class="stat-value" id="statFinished">0</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Live</div>
+            <div class="stat-value" id="statLive">0</div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="box">
+            <h2>Sign up</h2>
+
+            <p style="font-weight: 800; color: #64748b; margin-top: 0;">
+                Your nickname will appear on the leaderboard. Your phone number will stay private.
+            </p>
+
+            <div class="login-row">
+                <input id="signupNickname" placeholder="Nickname">
+                <input id="signupPhoneNumber" placeholder="Phone number">
+                <input id="signupPin" placeholder="PIN" type="password">
+
+                <label style="display: flex; align-items: center; gap: 8px; font-weight: 800; color: #334155;">
+                    <input id="whatsappOptIn" type="checkbox" style="width: auto;">
+                    WhatsApp notifications
+                </label>
+
+                <button onclick="registerUser()">Sign up</button>
+            </div>
+
+            <hr style="margin: 18px 0; border: none; border-top: 1px solid #e2e8f0;">
+
+            <h2>Login</h2>
+
+            <div class="login-row">
+                <input id="loginPhoneNumber" placeholder="Phone number">
+                <input id="loginPin" placeholder="PIN" type="password">
+
+                <button onclick="login()">Login</button>
+                <button class="btn-light" onclick="logout()">Logout</button>
+            </div>
+
+            <p id="loginStatus"></p>
+        </div>
+
+        <div class="box">
+            <h2>Leaderboard</h2>
+            <button onclick="loadLeaderboard()">Refresh Leaderboard</button>
+            <div id="leaderboard"></div>
+        </div>
+    </div>
+
+    <div class="box live-panel">
+        <h2>🔥 Live Scores</h2>
+        <button class="btn-orange" onclick="loadLiveScores()">Refresh Live Scores</button>
+        <button class="btn-green" onclick="forceLiveSync()">Force Live Sync</button>
+        <p id="liveStatus"></p>
+        <div id="liveScores"></div>
+    </div>
+
+    <div class="box">
+        <h2>Admin</h2>
+        <button onclick="toggleAdmin()">Show / Hide Admin Tools</button>
+
+        <div id="adminTools" class="hidden" style="margin-top: 12px;">
+            <button class="btn-green" onclick="syncScores()">Sync Scores from API</button>
+            <button class="btn-orange" onclick="calculatePoints()">Calculate Points</button>
+            <button class="btn-light" onclick="smartCheck()">Smart Check</button>
+        </div>
+
+        <p id="adminStatus" class="admin-status"></p>
+    </div>
+
+    <div class="box">
+        <h2>Matches</h2>
+
+        <div class="filters">
+            <button onclick="setFilter('all')">All</button>
+            <button onclick="setFilter('open')">Prediction Open</button>
+            <button onclick="setFilter('live')">Live</button>
+            <button onclick="setFilter('finished')">Finished</button>
+            <button onclick="setFilter('mine')">My Predictions</button>
+
+            <select id="groupFilter" onchange="renderMatches()">
+                <option value="all">All Groups</option>
+                <option value="GROUP_A">Group A</option>
+                <option value="GROUP_B">Group B</option>
+                <option value="GROUP_C">Group C</option>
+                <option value="GROUP_D">Group D</option>
+                <option value="GROUP_E">Group E</option>
+                <option value="GROUP_F">Group F</option>
+                <option value="GROUP_G">Group G</option>
+                <option value="GROUP_H">Group H</option>
+                <option value="GROUP_I">Group I</option>
+                <option value="GROUP_J">Group J</option>
+                <option value="GROUP_K">Group K</option>
+                <option value="GROUP_L">Group L</option>
+            </select>
+        </div>
+
+        <button class="btn-light" onclick="loadMatches()">Refresh Matches</button>
+
+        <div id="matches"></div>
+    </div>
+</div>
+
+<div id="squadModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-top">
+            <div id="squadModalTitle" class="modal-title">Squad</div>
+            <button class="modal-close" onclick="closeSquadModal()">Close</button>
+        </div>
+
+        <div id="squadModalContent" class="modal-content">Loading...</div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/leaderboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/squads.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script src="{{ url_for('static', filename='js/matches.js') }}"></script>
+
+</body>
+</html>
