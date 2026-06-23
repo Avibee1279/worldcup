@@ -86,6 +86,18 @@ def get_effective_live_score(row):
     return home_score, away_score
 
 
+def sync_live_scores_before_read():
+    """
+    Strong live-score behaviour:
+    before serving matches, live scores, or leaderboard, ask the backend
+    to pull the latest football-data scores. Cooldown is handled in scheduler_jobs.py.
+    """
+    try:
+        live_sync_if_needed(force=True, bypass_cooldown=False)
+    except Exception as e:
+        print("Live sync before read failed:", e)
+
+
 def register_routes(app):
 
     @app.route("/")
@@ -242,6 +254,8 @@ def register_routes(app):
     def get_matches():
         user_id = request.args.get("user_id")
 
+        sync_live_scores_before_read()
+
         conn = get_db()
         cur = conn.cursor()
 
@@ -397,6 +411,8 @@ def register_routes(app):
 
     @app.route("/api/leaderboard")
     def leaderboard():
+        sync_live_scores_before_read()
+
         conn = get_db()
         cur = conn.cursor()
 
@@ -477,6 +493,8 @@ def register_routes(app):
 
     @app.route("/api/live-scores")
     def api_live_scores():
+        sync_live_scores_before_read()
+
         conn = get_db()
         cur = conn.cursor()
 

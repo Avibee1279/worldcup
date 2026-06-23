@@ -5,7 +5,7 @@ from football_api import sync_matches_from_api
 from scoring import recalculate_points
 
 LAST_LIVE_API_CALL = None
-LIVE_API_COOLDOWN_SECONDS = 60
+LIVE_API_COOLDOWN_SECONDS = 30
 
 
 def get_due_matches_for_sync():

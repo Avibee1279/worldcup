@@ -11,6 +11,32 @@ def get_headers():
     return {"X-Auth-Token": TOKEN}
 
 
+def extract_score_pair(score):
+    """
+    football-data can expose score data in different nested fields depending on match status.
+    For live matches, try fullTime first, then regularTime, then halfTime.
+    """
+    if not score:
+        return None, None
+
+    for key in ("fullTime", "regularTime", "halfTime"):
+        part = score.get(key) or {}
+        home = part.get("home")
+        away = part.get("away")
+
+        if home is not None and away is not None:
+            return home, away
+
+    # Extra fallback in case provider returns a direct score shape.
+    home = score.get("home")
+    away = score.get("away")
+
+    if home is not None and away is not None:
+        return home, away
+
+    return None, None
+
+
 def sync_matches_from_api():
     url = BASE_URL + "/competitions/WC/matches"
     response = requests.get(url, headers=get_headers(), timeout=20)
@@ -27,7 +53,7 @@ def sync_matches_from_api():
         home = match.get("homeTeam", {})
         away = match.get("awayTeam", {})
         score = match.get("score", {})
-        full_time = score.get("fullTime", {})
+        home_score, away_score = extract_score_pair(score)
 
         values = (
             match.get("utcDate"),
@@ -40,8 +66,8 @@ def sync_matches_from_api():
             away.get("name"),
             home.get("crest"),
             away.get("crest"),
-            full_time.get("home"),
-            full_time.get("away"),
+            home_score,
+            away_score,
             match.get("id")
         )
 
